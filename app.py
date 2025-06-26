@@ -4,8 +4,8 @@ import google.generativeai as genai
 import requests
 
 # === API Keys ===
-GEMINI_API_KEY = "AIzaSyB-S2AERhYS7YPCs3ETnrK4A0ne-XeB8Lc"
-RAPIDAPI_KEY = "30519c4941mshc4a0ea1fc7107d7p17bac2js"
+GEMINI_API_KEY = "AIzaSyAcdQnjmv1X2FqnPlZNWHfwSJBT5eFja8Q"
+RAPIDAPI_KEY = "30519c4941mshc4a0ea1fc7107d7p17bac2jsn20a0f8415a0d"
 RAPIDAPI_HOST = "crunchbase4.p.rapidapi.com"
 
 # === Configure Gemini ===
@@ -21,9 +21,9 @@ startup_domain = st.text_input("Enter the company's domain (e.g., openai.com):")
 if st.button("Generate VC Analysis") and startup_domain:
     with st.spinner("Fetching data from Crunchbase..."):
         try:
-            # === Call Crunchbase4 API ===
+            # === Crunchbase API Call ===
             url = "https://crunchbase4.p.rapidapi.com/company"
-            payload = { "company_domain": startup_domain }
+            payload = {"company_domain": startup_domain}
             headers = {
                 "x-rapidapi-key": RAPIDAPI_KEY,
                 "x-rapidapi-host": RAPIDAPI_HOST,
@@ -37,39 +37,52 @@ if st.button("Generate VC Analysis") and startup_domain:
             st.subheader("🔎 Raw API JSON Response")
             st.json(data)
 
-            # === Extract fields ===
-            bio = data.get("bio", "No description available.")
-            category = data.get("category", "N/A")
-            valuation = data.get("valuation", "N/A")
-            location = data.get("location", "N/A")
-            name = data.get("company_name", startup_domain)
+            # === Extract and format JSON from "company" object ===
+            company = data.get("company", {})
 
-            # === Format summary text nicely ===
+            name = startup_domain
+            about = company.get("about", "No description available.")
+            founded = company.get("founded_year", "Unknown")
+            funding = company.get("funding", {})
+            funding_usd = funding.get("value_usd", "N/A")
+            industries = ", ".join(company.get("industries", [])) or "N/A"
+            location = company.get("location", "Unknown")
+            size = company.get("size", "N/A")
+            website = company.get("website", "N/A")
+            long_description = company.get("long_description", "")
+
+            # === Condensed Bullet Summary ===
             summary_text = f"""
-**Company Name:** {name}  
-**Industry:** {category}  
-**Location:** {location}  
-**Valuation:** {valuation}  
+### 🔍 Company Summary
 
-**Description:**  
-{bio}
+- **About:** {about}
+- **Founded:** {founded}
+- **Funding Raised:** ${funding_usd:,} USD
+- **Industries:** {industries}
+- **Location:** {location}
+- **Company Size:** {size}
+- **Website:** [{website}]({website})
+
+**📝 Long Description:**  
+{long_description}
 """
 
-            # === Generate and display Gemini response ===
-            if bio != "No description available.":
-                gemini_prompt = (
-                    f"Based on the following company data, provide a VC investment analysis:\n\n{summary_text}"
-                )
+            st.markdown(summary_text)
+
+            # === Prompt Gemini ===
+            if long_description:
+                gemini_prompt = f"""
+You are a venture capital analyst. Based on the following company profile, write a concise investment analysis, covering strengths, risks, and outlook:
+
+{summary_text}
+"""
                 gemini_response = model.generate_content(gemini_prompt)
+                safe_output = gemini_response.text.encode('utf-16', 'surrogatepass').decode('utf-16', 'ignore')
 
-                st.success("Analysis Complete")
-                st.markdown("### Company Summary")
-                st.markdown(summary_text)
-
-                st.markdown("### Gemini VC Analysis")
-                st.write(gemini_response.text)
+                st.markdown("### 🧠 Gemini VC Analysis")
+                st.markdown(safe_output)
             else:
-                st.warning("⚠️ Insufficient data for meaningful analysis. Try another company.")
+                st.warning("⚠️ Insufficient description data for meaningful analysis. Try another company.")
 
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"❌ Error: {e}")
