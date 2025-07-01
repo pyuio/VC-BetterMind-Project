@@ -3,15 +3,13 @@ import streamlit as st
 import google.generativeai as genai
 import requests
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
 load_dotenv()
 
-# === API Keys ===
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
-RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
-GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")
+# Prefer st.secrets if available (Streamlit Cloud), otherwise fallback to .env
+GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY"))
+RAPIDAPI_KEY = st.secrets.get("RAPIDAPI_KEY", os.getenv("RAPIDAPI_KEY"))
+RAPIDAPI_HOST = st.secrets.get("RAPIDAPI_HOST", os.getenv("RAPIDAPI_HOST"))
+GNEWS_API_KEY = st.secrets.get("GNEWS_API_KEY", os.getenv("GNEWS_API_KEY"))
 
 # === Configure Gemini ===
 genai.configure(api_key=GEMINI_API_KEY)
