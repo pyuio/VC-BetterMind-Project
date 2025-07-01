@@ -5,7 +5,7 @@ import requests
 
 # === API Keys ===
 GEMINI_API_KEY = "AIzaSyAcdQnjmv1X2FqnPlZNWHfwSJBT5eFja8Q"
-RAPIDAPI_KEY = "2856f048eemsh2e318769a0c6843p1cb6c1jsn46af8e1e84d4"
+RAPIDAPI_KEY = "1b877eaaf4msha3f0437e7fbe9a5p197bc5jsnd00b50cf53f7"
 RAPIDAPI_HOST = "crunchbase4.p.rapidapi.com"
 GNEWS_API_KEY = "6dcc6ea4bc8ec46a3a3e4be7dba0ee7c"  # Replace with your GNews API key
 
